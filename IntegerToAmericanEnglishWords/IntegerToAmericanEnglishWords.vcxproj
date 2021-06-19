@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{24b703f8-c380-4e42-ae2d-45f4e333f219}</ProjectGuid>
-    <RootNamespace>intToNameString</RootNamespace>
+    <ProjectGuid>{386949df-4670-4259-95b8-1dab106c1a08}</ProjectGuid>
+    <RootNamespace>IntegerToAmericanEnglishWords</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -139,7 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="intToNameString.cpp" />
+    <ClCompile Include="IntegerToAmericanEnglishWords.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
