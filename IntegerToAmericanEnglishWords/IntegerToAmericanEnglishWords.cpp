@@ -1,9 +1,7 @@
-//This program was developed starting October 04, 2020, to take integer inputs and quickly return the numbers as American-English phrases. This program
-//was designed for Windows.
+//Jeffrey Andersen
 
 
-//future considerations: optimize, consider accepting commas in input, consider outputting in other languages, simply update the maximum number of
-//input digits supported and the appendices array to scale to even larger numbers
+//future considerations: optimize, consider accepting commas in input, consider outputting in other languages
 
 
 #include <iostream>
@@ -17,14 +15,14 @@ using std::string;
 
 
 constexpr unsigned int baseTen = 10; //the input/output base //future consideration: accept input numbers in other bases
-constexpr unsigned int maxDigits = 102; //the maximum number of input digits supported
+constexpr unsigned int maxDigits = 102; //the maximum number of input digits supported //future consideration: update with the AmericanAppendices array to scale to even larger numbers
 
 const string digits[baseTen] = { "", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" }; //the appearance of the word "zero" is rather unique
 const string AmericanAppendices[maxDigits / 3] = { "", " thousand",
 								" million", " billion", " trillion", " quadrillion", " quintillion", " sextillion", " septillion", " octillion", " nonillion",
 								" decillion", " undecillion", " duodecillion", " tredecillion", " quattuordecillion", " quindecillion", " sexdecillion", " septendecillion", " octodecillion", " novemdecillion",
 								" vigintillion", " unvigintillion", " duovigintillion", " trevigintillion", " quattuorvigintillion", " quinvigintillion", " sexvigintillion", " septenvigintillion", " octovigintillion", " novemvigintillion",
-								" trigintillion", " untrigintillion", " duotrigintillion" };
+								" trigintillion", " untrigintillion", " duotrigintillion" }; //future consideration: update with maxDigits to scale to even larger numbers
 const string theTens[baseTen] = { " ten", " eleven", " twelve", " thirteen", " fourteen", " fifteen", " sixteen", " seventeen", " eighteen", " nineteen" }; //ten through nineteen have unique names
 const string tensPlace[baseTen] = { " ", " ", " twenty-", " thirty-", " fourty-", " fifty-", " sixty-", " seventy-", " eighty-", " ninety-" };
 
@@ -171,35 +169,33 @@ string decimalNumberToAmericanEnglishWords(const string& number) { //returns an 
 }
 
 
-int main(int argc, char* argv[]) { //returns how many number interpretations had a compromising error
+bool getNameOfNumber(const string& number) { //returns false on success and true on failure
+	const string nameOfNumber = decimalNumberToAmericanEnglishWords(number);
+	if (!nameOfNumber.empty()) {
+		cout << nameOfNumber << '\n';
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+
+unsigned int main(int argc, char* argv[]) { //returns how many number interpretations had a compromising error
+	unsigned int errorTally = 0;
 	if (argc == 1) {
-		cout << "Input integers to receive a list of their corresponding English phrases: ";
+		cout << "Input integers to receive a list of their corresponding American-English names: ";
 		string line;
 		getline(cin, line);
 		istringstream iss(line);
-		int errorTally = 0;
 		while (iss >> line) {
-			const string result = decimalNumberToAmericanEnglishWords(line);
-			if (!result.empty()) {
-				cout << result << '\n';
-			}
-			else {
-				errorTally++;
-			}
+			errorTally += getNameOfNumber(line);
 		}
-		return errorTally;
 	}
 	else {
-		int errorTally = 0;
-		for (int i = 1; i < argc; ++i) {
-			const string result = decimalNumberToAmericanEnglishWords(argv[i]);
-			if (!result.empty()) {
-				cout << result << '\n';
-			}
-			else {
-				errorTally++;
-			}
+		for (int i = 1; i < argc; i++) {
+			errorTally += getNameOfNumber(argv[i]);
 		}
-		return errorTally;
 	}
+	return errorTally;
 }
