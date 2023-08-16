@@ -1,7 +1,5 @@
-//Jeffrey Andersen
-
-
-//future considerations: optimize, consider accepting commas in input, consider outputting in other languages
+//TODO: accept commas in input
+//TODO: allow for outputting in other languages
 
 
 #include <iostream>
@@ -14,60 +12,66 @@ using std::istringstream;
 using std::string;
 
 
-constexpr unsigned int baseTen = 10; //the input/output base //future consideration: accept input numbers in other bases
-constexpr unsigned int maxDigits = 102; //the maximum number of input digits supported //future consideration: update with the AmericanAppendices array to scale to even larger numbers
+constexpr unsigned int radix = 10; //TODO: allow customization of radix
 
-const string digits[baseTen] = { "", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" }; //the appearance of the word "zero" is rather unique
-const string AmericanAppendices[maxDigits / 3] = { "", " thousand",
-								" million", " billion", " trillion", " quadrillion", " quintillion", " sextillion", " septillion", " octillion", " nonillion",
-								" decillion", " undecillion", " duodecillion", " tredecillion", " quattuordecillion", " quindecillion", " sexdecillion", " septendecillion", " octodecillion", " novemdecillion",
-								" vigintillion", " unvigintillion", " duovigintillion", " trevigintillion", " quattuorvigintillion", " quinvigintillion", " sexvigintillion", " septenvigintillion", " octovigintillion", " novemvigintillion",
-								" trigintillion", " untrigintillion", " duotrigintillion" }; //future consideration: update with maxDigits to scale to even larger numbers
-const string theTens[baseTen] = { " ten", " eleven", " twelve", " thirteen", " fourteen", " fifteen", " sixteen", " seventeen", " eighteen", " nineteen" }; //ten through nineteen have unique names
-const string tensPlace[baseTen] = { " ", " ", " twenty-", " thirty-", " fourty-", " fifty-", " sixty-", " seventy-", " eighty-", " ninety-" };
+const string digits[radix] = { "", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
+const char* AmericanAppendices[] = { "", " thousand",
+							" million", " billion", " trillion", " quadrillion", " quintillion", " sextillion", " septillion", " octillion", " nonillion",
+							" decillion", " undecillion", " duodecillion", " tredecillion", " quattuordecillion", " quindecillion", " sexdecillion", " septendecillion", " octodecillion", " novemdecillion",
+							" vigintillion", " unvigintillion", " duovigintillion", " trevigintillion", " quattuorvigintillion", " quinvigintillion", " sexvigintillion", " septenvigintillion", " octovigintillion", " novemvigintillion",
+							" trigintillion", " untrigintillion", " duotrigintillion" }; //TODO: update to scale to even larger numbers
+const string theTens[radix] = { " ten", " eleven", " twelve", " thirteen", " fourteen", " fifteen", " sixteen", " seventeen", " eighteen", " nineteen" }; //ten through nineteen have unique names
+const string tensPlace[radix] = { " ", " ", " twenty-", " thirty-", " forty-", " fifty-", " sixty-", " seventy-", " eighty-", " ninety-" };
 
 
-string decimalNumberToAmericanEnglishWords(const string& number) { //returns an empty string on error //future consideration: grammatical "and"s
+string decimalNumberToAmericanEnglishWords(const string& number) { //returns an empty string on error //TODO: grammatical "and"s
 	if (number.empty()) { return ""; }
 	string numberAsAmericanEnglishWords = "";
-	if (number[0] == '+') {
+	size_t index = 1; //start after any (initially assumed) sign character or leading zero
+	switch (number[0]) {
+	case '+':
+	case '-':
 		if (number.size() == 1) {
 			cerr << "Error: input " << number << " rejected for not being an integer.\n";
 			return "";
 		}
-		numberAsAmericanEnglishWords += " positive"; //adding a space at the beginning allows for easy removal once finished parsing rather than dynamically determining when to add preceding spaces
-	}
-	else if (number[0] == '-') {
-		if (number.size() == 1) {
-			cerr << "Error: input " << number << " rejected for not being an integer.\n";
-			return "";
-		}
-		numberAsAmericanEnglishWords += " negative"; //adding a space at the beginning allows for easy removal once finished parsing rather than dynamically determining when to add preceding spaces
-	}
-
-	size_t index = !isdigit(number[0]); //start after any sign character
-	if (index != 0 && numberAsAmericanEnglishWords.empty()) { //the first character is actually invalid
+		numberAsAmericanEnglishWords += (number[0] == '+' ? " positive" : " negative"); //adding a space at the beginning allows for easy removal once finished parsing rather than dynamically determining when to add preceding spaces
+		break;
+	case '0': //leading zeros such as at number[0] can be safely ignored
+		break;
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		index = 0;
+		break;
+	default:
 		cerr << "Error: input " << number << " rejected for not being an integer.\n";
 		return "";
 	}
-	for (; number.size() - index > maxDigits; index++) { //confirm extra large digits are all zeros, or throw an error
-		if (number[index] != '0') {
-			cerr << "Error: input " << number << " rejected for ";
-			if (!isdigit(number[index])) {
-				cerr << "not being an integer.\n";
-			}
-			else {
-				cerr << "having too great a magnitude, sorry.\n";
-			}
-			return "";
-		}
-	}
-	for (; index < number.size() && number[index] == '0'; index++) {} //get to the first nonzero digit
-	if (index == number.size()) { return "zero"; }
 
-	for (; index < number.size(); index++) {
+	const size_t firstNonzero = number.find_first_not_of('0', index);
+	if (firstNonzero == string::npos) {
+		numberAsAmericanEnglishWords += " zero";
+		return numberAsAmericanEnglishWords.substr(1); //remove initial space that is guaranteed to be there instead of dynamically determining when to add it
+	}
+	if (!isdigit(number[firstNonzero])) {
+		cerr << "Error: input " << number << " rejected for not being an integer.\n";
+		return "";
+	}
+	if (number.size() - firstNonzero > sizeof(AmericanAppendices) / sizeof(AmericanAppendices[0]) * 3) { //each appendix can account for three digits
+		cerr << "Error: input " << number << " rejected for having too great a magnitude, sorry!";
+		return "";
+	}
+
+	for (index = firstNonzero; index < number.size(); index++) {
 		switch ((number.size() - index) % 3) {
-		case 0: //if looking at any of the "hundred"s (places') digits
+		case 0: //if looking at any of the hundreds-places' digits
 			if (!isdigit(number[index])) {
 				cerr << "Error: input " << number << " rejected for not being an integer.\n";
 				return "";
@@ -82,7 +86,7 @@ string decimalNumberToAmericanEnglishWords(const string& number) { //returns an 
 					cerr << "Error: input " << number << " rejected for not being an integer.\n";
 					return "";
 				}
-				numberAsAmericanEnglishWords += theTens[number[index] - '0']; //includes the preceding spaces
+				numberAsAmericanEnglishWords += theTens[number[index] - '0']; //includes a preceding space
 				break;
 			case '0': //even zero tens gets handled appropriately by the tensPlace array
 			case '2':
@@ -99,7 +103,7 @@ string decimalNumberToAmericanEnglishWords(const string& number) { //returns an 
 				}
 				numberAsAmericanEnglishWords += tensPlace[number[index - 1] - '0'] + digits[number[index] - '0'];
 				if (number[index] == '0') {
-					numberAsAmericanEnglishWords.erase(numberAsAmericanEnglishWords.size() - 1, 1); //remove the hyphen character placed in anticipation of a nonzero right digit; corrected after the fact as (with equal probability of each digit appearing) this is anticipated to be more optimized than checking nonzero for each digit
+					numberAsAmericanEnglishWords.erase(numberAsAmericanEnglishWords.size() - 1, 1); //remove the hyphen placed in anticipation of a nonzero right digit; corrected after the fact as (with equal probability of each digit appearing) this is anticipated to be more optimized than checking nonzero for each digit
 				}
 				break;
 			default:
@@ -115,7 +119,7 @@ string decimalNumberToAmericanEnglishWords(const string& number) { //returns an 
 					cerr << "Error: input " << number << " rejected for not being an integer.\n";
 					return "";
 				}
-				numberAsAmericanEnglishWords += theTens[number[index] - '0']; //includes the preceding spaces
+				numberAsAmericanEnglishWords += theTens[number[index] - '0']; //includes a preceding space
 				break;
 			case '0': //even zero tens gets handled appropriately by the tensPlace array
 			case '2':
@@ -132,7 +136,7 @@ string decimalNumberToAmericanEnglishWords(const string& number) { //returns an 
 				}
 				numberAsAmericanEnglishWords += tensPlace[number[index - 1] - '0'] + digits[number[index] - '0'];
 				if (number[index] == '0') {
-					numberAsAmericanEnglishWords.erase(numberAsAmericanEnglishWords.size() - 1, 1); //remove the hyphen character placed in anticipation of a nonzero right digit; corrected after the fact as (with equal probability of each digit appearing) this is anticipated to be more optimized than checking nonzero for each digit
+					numberAsAmericanEnglishWords.erase(numberAsAmericanEnglishWords.size() - 1, 1); //remove the hyphen placed in anticipation of a nonzero right digit; corrected after the fact as (with equal probability of each digit appearing) this is anticipated to be more optimized than checking nonzero for each digit
 				}
 				break;
 			default:
@@ -162,7 +166,7 @@ string decimalNumberToAmericanEnglishWords(const string& number) { //returns an 
 			break;
 		}
 		if (number[index] != '0' || (index >= 1 && number[index - 1] != '0') || (index >= 2 && number[index - 2] != '0')) {
-			numberAsAmericanEnglishWords += AmericanAppendices[(number.size() - index - 1) / 3] + ','; //adding a comma after each allows for easy removal at the end of parsing the number rather than dynamically determining when to add commas
+			numberAsAmericanEnglishWords += string(AmericanAppendices[(number.size() - index - 1) / 3]) + ','; //adding a comma after each allows for easy removal at the end of parsing the number rather than dynamically determining when to add commas
 		}
 	}
 	return numberAsAmericanEnglishWords.substr(1, numberAsAmericanEnglishWords.size() - 2); //remove initial space and terminal comma that are guaranteed to be there instead of dynamically determining when to add them
