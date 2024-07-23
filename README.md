@@ -17,7 +17,7 @@
 
 This program takes integer inputs and quickly returns the American-English names for them. This program was designed for Windows.  
 Start date: October 04, 2020  
-Current version: 0.1.0  
+Current version: 2.0.8  
 
 ### Folder structure
 
